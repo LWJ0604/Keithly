@@ -1,70 +1,56 @@
-# Keithley Lab 1.2.1 — 곡선 통합 저장
+# KeithleyLabv1.2.1
 
-Windows용 4200-SCS / KXCI KI4200 V8.2-SP4 측정 앱입니다. ZIP 전체를 **새 폴더**에 풀고 `Start_Keithley_Lab_v1.2.1.cmd` 또는 함께 있는 `KeithleyLab.exe`를 실행하세요. 작업 PC의 별도 런처는 `task\Start_Keithley_Lab_v1.2.1.cmd`, EXE는 `task\dist_v121\KeithleyLab\KeithleyLab.exe`입니다. 기존 실행 중 앱을 자동 종료·교체하지 않습니다. 구버전과 같은 이름의 EXE가 있으므로 창 제목의 **1.2.1**을 확인하세요.
+Windows용 legacy Keithley 4200-SCS / KXCI 측정 GUI 소스입니다. **기존 분석기 hi와 별도 프로그램**입니다. Spot, Id–Vd, Id–Vg, family/반복 큐, 실시간 플롯, 취소·정리, CSV/JSON 저장을 제공합니다.
 
-항상 simulation·빈 큐·미연결로 시작합니다. 실제 측정은 매번 한계·배선·조건 검토와 명시적 시작이 필요하며 자동 재연결/재개하지 않습니다. 이번 개발에서는 실제 장비 명령을 보내지 않았습니다. 사용자 완료 기록을 읽고 분석한 것이 실기 검증의 범위입니다. 프로브 접촉이나 광조건을 추정하지 않습니다.
+## 저장소에 올리기
 
-## 저장 위치
+이 파일이 저장소 최상위에 오도록 **이 폴더 안의 내용 전체**를 업로드하세요. EXE용 ZIP 안의 `source`를 다시 꺼낼 필요가 없습니다. [짧은 업로드 안내](UPLOAD_KO.md)를 참고하세요. 실제 장비 IP, 사용자 경로, 실측 자료, 개인 QA 로그, EXE/dist/venv/cache는 포함하지 않습니다.
 
-- `<저장루트>/<Device ID>/<실제 시작 날짜>/원본/`: **통합 RAW CSV를 바로 저장**합니다. 새 seq/curve 하위 폴더를 만들지 않습니다.
-- `…/평균_분석입력/`: 반복 평균 통합 CSV. RAW와 함께 분석하면 중복됩니다.
-- `…/기록/seq_…/…repeat…/`: 변경 없는 pointwise `points.csv`, 명령 raw hex, settings, 요약과 그래프.
+```text
+README.md                 # 이 파일
+keithley_lab/             # 앱 소스
+tests/                    # loopback 모의 장비 테스트
+docs/                     # 프로토콜 / 데이터 형식 / 검증 요약
+requirements.txt          # 실행 의존성
+requirements-build.txt    # 빌드 의존성
+pyproject.toml            # 패키지 정보
+KeithleyLab.spec          # Windows EXE 빌드 설정
+setup_windows.cmd
+run_windows.cmd
+test_windows.cmd
+build_windows.cmd
+.gitignore
+```
 
-예: `device=center-fold_Id-Vd_Vg-20to20_step1V_RAW_135535_s01_repeat001_forward_<ID>.csv`
+## 실행·테스트·빌드
 
-원시 점과 명령은 즉시 증분 저장합니다. **통합 RAW는 한 반복의 모든 family가 끝난 뒤** 생성됩니다. 정상 Stop/오류 때는 가능한 부분 결과를 `_PARTIAL`로 저장합니다. 평균은 단계 반복 완료 또는 중단 정리 때 생성합니다. 파일명은 시각·step·repeat·branch·고유 ID로 구분하고 기존 파일을 덮어쓰지 않습니다. 결과 목록 아래의 **통합 원본 폴더 열기**로 이동할 수 있습니다.
+**경로 제한:** 이 버전의 긴 중첩 파일 경로는 일부 Windows 환경에서 저장 실패를 일으킵니다. 드라이브 루트 가까운 `KLab` 같은 짧은 폴더에 풀고 저장 폴더와 Device ID도 짧게 정하세요. 깊은 폴더에서의 테스트/EXE 내보내기는 이번 검증에서 실패했고, 짧은 경로로 분리해 재검증했습니다. 긴 경로 지원을 수정한 버전은 아닙니다.
 
-## CSV 읽는 방법과 분석기 호환
+검증 환경은 Windows와 Python 3.7.8 (Tk 포함)입니다. 다른 Python 버전에서의 실행/빌드는 이번 배포에서 검증하지 않았습니다. Python 3.7을 쓰는 기존 환경과 맞춘 의존성 핀이며, Python 자체는 이 소스에 포함하지 않습니다.
 
-첫 행은 사람이 읽는 bias 설명, 둘째 행은 분석기용 정식 헤더, 셋째 행부터 숫자입니다. 모든 값은 **V/A**입니다. 전압은 프로그램 설정값이며 실측 전압으로 바꾸어 쓰지 않습니다.
+1. `setup_windows.cmd`: 독립 `.venv`를 만들고 PyYAML을 설치합니다. 의존성 다운로드에는 인터넷이 필요합니다.
+2. `run_windows.cmd`: 앱을 simulation 모드로 시작합니다.
+3. `test_windows.cmd`: 모의 TCP 서버로 테스트합니다. 실제 IP 접속은 테스트에서 차단합니다.
+4. `build_windows.cmd`: 빌드 의존성을 설치한 뒤 `dist/KeithleyLab/KeithleyLab.exe`를 만듭니다. 배포하려면 그 폴더 전체를 함께 전달하세요.
 
-- Id–Vd: 첫 열 `DrainV (V)`, 다음 열들 `DrainI (A) (1)`, `(2)`… 순서. 첫 행에 각 Vg를 표시합니다.
-- Id–Vg: 첫 열 `GateV (V)`, 다음 열들 Id, 첫 행에 각 고정 Vd를 표시합니다.
-- 뒤쪽 보조 열에는 family별 고정 bias, gate/source 전류를 보존합니다. 분석기가 읽는 `GateV/DrainV/GateI` 번호는 각 Id 번호와 정확히 대응합니다.
-- 원본 family 입력 순서와 방향을 유지합니다. 역방향·동일 bias 재방문·반복을 합치거나 정렬/보간하지 않습니다. 역방향은 별도 CSV입니다.
+이미 준비된 환경에서는 `python launch.py`, `python -m unittest discover -s tests -v`를 사용할 수 있습니다. `python launch.py --self-test`는 GUI를 포함한 모의 측정 검사입니다. 실제 측정 CLI/자동 예약/재시작 후 자동 재개 기능은 없습니다.
 
-기존 분석기 **1.9.1을 변경하지 않고** 실제 41곡선/3,321점과 모의 Id–Vg 다중 Vd를 전체 분석까지 검증했습니다. XLSX 대신 CSV를 선택한 이유는 기존 분석기가 XLSX 파일명에 `light`가 없으면 dark로 추정하기 때문입니다. 이번 데이터의 unknown 광조건을 잘못 바꾸지 않습니다.
+## 장비 연결과 한계
 
-**이번 기존 실행은 새 통합 CSV 하나만 명시 선택하세요.** 기존 깊은 per-curve 폴더는 보존되어 있습니다. `원본` 전체를 재귀 분석하면 동일 데이터가 중복됩니다. 새 실행의 원본 폴더에는 flat 통합 파일만 추가됩니다. 평균도 기존 깊은 출력과 새 통합 출력이 함께 남아 있는 전환 날짜에는 새 파일만 선택하세요.
+항상 simulation으로 시작하며 자동 연결하지 않습니다. 공개 소스의 기본 주소 `192.0.2.1`은 **문서용 예제 주소**입니다. real 모드를 사용하려면 현장에서 확인한 장비 IPv4를 직접 입력하고, 매 실행마다 배선·채널·compliance·전압 한계를 검토한 후 Start를 눌러야 합니다. 이 저장소의 기본값이나 예제는 새 소자의 안전 범위를 증명하지 않습니다.
 
-## QC와 메타데이터
+대상 firmware는 `KI4200 V8.2-SP4`입니다. 전송은 ASCII + NUL, 응답은 NUL 단위 완전 프레임으로 처리합니다. bias 명령의 자동 재시도나 재연결을 하지 않습니다. ACK는 실제 출력 OFF의 증거가 아니며 연결 손실 때 현장 확인이 필요합니다. [프로토콜 근거](docs/PROTOCOL.md).
 
-같은 이름의 `.provenance.json`은 분석 입력이 아니라 점검용 부속 기록입니다. 설정·단위·수동 조건의 confirmed/unknown, 날짜·타임존, 안정적 device 정보 스냅샷, 원본 경로/해시, branch/family/점 순서, 제외·결측 이유를 보존합니다. 평균은 역할별 n_valid/n_invalid/n_missing/SD와 기여 원본을 기록합니다. 기록 폴더의 원시 세 채널 데이터는 그대로 남습니다.
+## 저장과 분석
 
-부분 결과의 비정상 전류는 CSV에서 빈칸이며 실제 상태/원시값은 JSON과 points.csv에 남습니다. 유효점이 없는 family는 분석 CSV에서 제외하고 JSON에 명시합니다. 모든 family가 무효라면 CSV를 꾸며내지 않고 QC JSON만 저장합니다. family grid가 다르면 통합을 거부하고 원시를 보존합니다.
+기본 저장은 앱 폴더 아래이며 simulation 데이터는 별도 `simulation_data/`에 들어갑니다. 실제 저장 폴더는 사용자가 선택합니다. pointwise 원본·설정·로그·부분 측정을 보존하며, CSV 숫자는 V/A입니다. 세 채널은 순차 측정됩니다. 소스에 로그는 없지만 실행하면 호스트 이름·장비 주소·선택한 경로 등이 로컬 provenance에 기록될 수 있으므로 생성 결과를 공개 저장소에 올리지 마세요.
 
-**호환의 한계:** 분석기 1.9.1은 이 부속 JSON을 자동 읽지 않습니다. 상세 timing, compliance 한계·채널별 flag, 수동 온도/광조건, 전체 Settings를 분석기 설정으로 자동 주입하지 않습니다. 기존 device.md는 수정하지 않으며 필요한 메타데이터는 분석기에서 확인해야 합니다. V/A와 각 fixed bias 및 gate current는 CSV 자체에서 인식됩니다. 근거 없는 이동도·Vth·SS, 검출한계, 물리 메커니즘을 생성하지 않습니다. 분석기가 계산한 경험적 피팅은 소자 물리의 확증이 아닙니다.
+기존 분석기 1.9.1용 wide CSV는 family 열을 한 파일에 모읍니다. 요청한 PC point delay와 명시적으로 confirmed인 light/dark는 파일명에서 **inferred**로 전달됩니다. 온도·host hold·타임존·확인 이력은 JSON에 남으며 기존 분석기가 자동으로 읽지 않습니다. 상위 device.md의 공통 온도가 다른 실행에 잘못 상속될 수 있습니다. 내보내기 시 읽기 전용 검사에서 충돌하면 `.csv.review_required`로 보류하고 raw/JSON을 보존합니다. 사용자 메모나 분석기를 수정하지 않습니다. 메모 이동·편집 후에는 다시 검토해야 합니다. [CSV 스키마](docs/WIDE_SCHEMA.md).
 
-## 기존 기능과 안전
+## 범위와 검증
 
-Spot/Id–Vd/Id–Vg, mapping·전압한계·100 µA 이하 compliance, family 목록/범위, hold/delay/IT, 유한 큐와 반복, 실시간 플롯, 중단/정리, 증분 저장과 recovery를 유지합니다. Device ID는 1~80자이며 빈칸·앞뒤 공백·파일명 금지 문자는 한국어로 안내하고 필드를 강조합니다.
+소스 테스트와 GUI self-test는 모의 장비만 사용했습니다. 장비 실측, 외부 분석기 설치, 실제 데이터, 게시 자동화는 이 소스 검증에 포함하지 않습니다. [독립 검증 요약](docs/VALIDATION.md).
 
-v1.1.3의 NUL/명령별 응답 처리 소스는 동일합니다. ACK나 SP=1은 실제 출력 OFF의 증거가 아닙니다. 연결 손실 시 현장 확인이 필요합니다. 검증된 물리 조건은 D +0.05 V / S,G 0 V의 기존 사용자 확인이며, 이번 파일에서 더 넓은 사용자의 스윕 기록을 확인했다는 사실을 다른 소자의 안전 범위로 일반화하지 않습니다.
+이 소스 전용 구성을 위해 바꾼 것은 공개 예제 IP, 표준 PyYAML 의존성, 깨끗한 폴더에서의 테스트 초기화, 빌드/문서 구성입니다. 측정 프로토콜과 실행 엔진의 나머지 동작은 v1.2.1과 같습니다. 원본 측정 앱과 기존 Windows ZIP은 변경하지 않았습니다.
 
-소스는 `source/`, 검증은 `QA_REPORT_V121.md`, 통합 schema는 `WIDE_SCHEMA.md`를 참고하세요. 기존 분석기·연구 원본·Obsidian·GitHub·네트워크 설정은 변경하지 않았습니다.
-
-
-## 1.2.1 파일별 조건과 잘못된 공통 온도 방지
-
-**분석기 1.9.1은 `.provenance.json`을 자동으로 읽지 않습니다.** 예를 들어 25 °C와 40 °C 측정이 섞인 폴더의 상위 `device.md`에 25 °C가 있으면, 다른 파일에도 그 공통 온도가 적용될 수 있습니다. 현재 실행의 온도가 unknown이어도 JSON이 이 상속을 막아 주지 않습니다. SS 등의 온도 의존 해석 전에 파일별 조건을 반드시 확인하세요.
-
-이 버전은 CSV 공개 직전에 목적지부터 드라이브 루트까지 `device.md`를 읽기 전용으로 검사하고 경로·SHA256·판정 이유를 파일별 JSON의 `metadata_review`에 기록합니다. 상위 온도가 현재 confirmed 숫자 °C와 다르거나 현재 온도가 unknown이면, 또는 메모를 읽을 수 없거나 공유된 다른 실행 조건이 있으면 분석 CSV를 보류합니다. 일치하는 confirmed 숫자 온도는 허용하지만 분석기에서의 조건 확인을 생략해도 된다는 뜻은 아닙니다. 과거 파일을 가리키는 IdVd/IdVg 조건은 새 파일의 조건으로 복사하지 않습니다.
-
-보류 파일은 `.csv.review_required`이며 분석기의 CSV 검색 대상이 아닙니다. 원본 `points.csv`, 설정·명령 로그, 동일 수치의 보류 파일, JSON은 모두 보존됩니다. 측정 완료와 분석 입력 공개 보류는 별도 상태입니다. 확장자를 임의로 `.csv`로 바꾸지 마세요. 충돌 메모와 파일별 기록을 검토하고, 필요한 조건을 분석기의 파일별 검토 화면에서 명시적으로 확인하세요. 온도는 현재 분석기의 일반 파일별 override 항목에 없으므로, 서로 다른 온도 실행을 같은 공통 온도 아래에서 피팅하지 마세요. 별도 분석 폴더와 해당 측정에만 적용되는 검증된 메타데이터가 필요합니다. 앱은 메모를 자동 수정하거나 이를 대신 구성하지 않습니다.
-
-완료 화면의 **파일별 조건 기록 / 분석 전 확인** 버튼에 모든 JSON 및 보류 파일의 정확한 경로가 있습니다. 기존 통합 원본 폴더 버튼도 유지합니다.
-
-| 전달 항목 | 기존 분석기에서 보이는 상태 |
-|---|---|
-| programmed Vd/Vg와 measured Id/Ig, V/A | CSV 열에서 인식. 전압이 실측값이라는 뜻은 아님 |
-| point_delay_s | 파일명 `delay0.1s`에서 inferred로 읽음. **PC가 요청한 각 점의 대기 시간**이며 실제 점 간격/장비 Settings SweepDelay가 아님 |
-| confirmed + 설명이 정확히 light/dark인 조명 | 파일명에서 inferred로 읽음. 사용자의 확인 증거는 JSON에 유지 |
-| unknown 또는 다른 조명 설명 | 임의로 light/dark로 바꾸지 않음. device 이름에 모순된 light/dark 표시가 있으면 공개 보류 |
-| 날짜 | 취득 시작 날짜 폴더에서 inferred. PC 타임존 포함 실제 시각은 JSON/points.csv |
-| 온도, host hold, 타임존, 조건 확인 이력 | JSON에 보존되며 자동 전달되지 않음 |
-
-기존 `device.md` run-match는 한 디렉터리에서 IdVd/IdVg 각 한 파일을 지목하므로 다수 flat CSV의 서로 다른 온도·조건을 모두 전달하는 수단이 아닙니다. 파일별 온도를 공통 device.md에 덮어쓰지 않습니다.
-
-검사는 보수적인 **내보내기 시점의 스냅샷**입니다. 실제 분석기 metadata root, 사용자 path rule/override는 읽거나 변경하지 않으며, 이후 메모 편집·파일 이동·재명명까지 보증하지 않습니다. 상위 충돌을 하위에서 무효화한 경우에도 보류할 수 있습니다. `no_conflict_detected`는 모든 조건이 검증되었다는 뜻이 아닙니다.
-
-이미 전달한 v1.2.0 CSV나 기존 연구 파일은 이 패치로 수정·재생성하지 않습니다. 새 측정/내보내기에 적용됩니다. 기존 CSV는 분석 전에 해당 `.provenance.json`과 메모를 직접 확인하세요.
+프로젝트 전체에 대한 재배포 라이선스는 별도로 선택되지 않았습니다. 공개 저장소 업로드는 라이선스 선택과 별개이며, 오픈소스 사용 허가가 자동으로 추가되지는 않습니다. 의존성은 각 라이선스를 따릅니다.

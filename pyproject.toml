@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61,<68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "keithley-lab"
+version = "1.2.1"
+description = "Simulation-first Windows GUI for legacy Keithley 4200-SCS KXCI"
+readme = "README.md"
+requires-python = ">=3.7"
+dependencies = ["PyYAML==6.0.1"]
+
+[project.gui-scripts]
+keithley-lab = "keithley_lab.gui:main"
+
+[tool.setuptools.packages.find]
+include = ["keithley_lab*"]
+exclude = ["tests*"]
