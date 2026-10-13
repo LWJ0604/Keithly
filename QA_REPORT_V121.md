@@ -1,0 +1,14 @@
+# Keithley Lab 1.2.1 QA
+
+This patch changes export metadata review and completion UI only. No instrument connections or commands were made. The transport source is byte-identical to v1.1.3. All hardware/network tests use a loopback mock with real endpoints blocked.
+
+- Full suite: 76 tests passed, including 11 new metadata cases and previous framing, SP=1, unsigned readings, compliance, cancellation, disconnect, disk-failure and concurrency coverage.
+- Real installed analyzer 1.9.1, isolated synthetic files: light, dark and unknown each completed the full analysis pipeline. Requested delay 0.123 s was read exactly as **inferred**, canonical confirmed illumination became the correct inferred label, unknown stayed missing, and host hold stayed missing. These missing fields are not claimed as transferred.
+- Each case then introduced a synthetic ancestor note with 25 °C while current temperature was unknown. New CSV publication was held, notes retained identical SHA256, and the actual analyzer extension allow-list excluded `.review_required`. Six integration checks passed; analyzer code fingerprint unchanged.
+- Metadata unit cases include mismatched/unknown/matching temperatures, historical links, null temperatures, malformed/unreadable notes, shared noise/units, conservative parent override treatment, filename lighting, delay decimal formatting and receipt paths.
+- Actual Tk callbacks: five metadata UI checks, exact JSON/held-file paths, warning text, rendered button and reopening without resume. Screenshots are synthetic UI fixtures, not evidence of hardware state. The full workbench interaction suite and packaged simulation smoke are also recorded in the release evidence.
+- Initial full-suite attempt was blocked by sandbox localhost permissions; rerun with approved loopback access passed. Initial integration fixture used a disallowed zero settling interval; corrected to 0.01 s and passed. No outstanding test failure from either attempt.
+
+Evidence: `qa/all-tests-v121.txt`, `qa/metadata-reader-v121.json`, `qa/metadata-ui-v121.json`, `qa/workbench-tests-v121.json`, `qa/packaged-selftest.json`, screenshots and package verification receipt. Research files are not bundled. Prior v1.2.0 real-data 41-curve/3,321-point round-trip evidence remains applicable to unchanged numeric CSV structure; this patch did not regenerate those delivered files.
+
+Limitations: JSON conditions still require manual review in analyzer 1.9.1. The read-only guard checks all ancestors conservatively, not the analyzer's current root/path rules/overrides, and cannot protect against later note edits or moving/renaming files. A clean guard is not full scientific metadata approval. A shared temperature cannot represent multiple independent temperatures. Existing device.md notes, analyzer state/code, original data, prior EXEs and ZIPs are preserved.
