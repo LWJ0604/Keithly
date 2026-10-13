@@ -1,26 +1,6 @@
 # KeithleyLabv1.2.1
 
-Windows용 legacy Keithley 4200-SCS / KXCI 측정 GUI 소스입니다. **기존 분석기 hi와 별도 프로그램**입니다. Spot, Id–Vd, Id–Vg, family/반복 큐, 실시간 플롯, 취소·정리, CSV/JSON 저장을 제공합니다.
-
-## 저장소에 올리기
-
-이 파일이 저장소 최상위에 오도록 **이 폴더 안의 내용 전체**를 업로드하세요. EXE용 ZIP 안의 `source`를 다시 꺼낼 필요가 없습니다. [짧은 업로드 안내](UPLOAD_KO.md)를 참고하세요. 실제 장비 IP, 사용자 경로, 실측 자료, 개인 QA 로그, EXE/dist/venv/cache는 포함하지 않습니다.
-
-```text
-README.md                 # 이 파일
-keithley_lab/             # 앱 소스
-tests/                    # loopback 모의 장비 테스트
-docs/                     # 프로토콜 / 데이터 형식 / 검증 요약
-requirements.txt          # 실행 의존성
-requirements-build.txt    # 빌드 의존성
-pyproject.toml            # 패키지 정보
-KeithleyLab.spec          # Windows EXE 빌드 설정
-setup_windows.cmd
-run_windows.cmd
-test_windows.cmd
-build_windows.cmd
-.gitignore
-```
+Windows용 legacy Keithley 4200-SCS / KXCI 측정 GUI 소스입니다. Spot, Id–Vd, Id–Vg, family/반복 큐, 실시간 플롯, 취소·정리, CSV/JSON 저장을 제공합니다.
 
 ## 실행·테스트·빌드
 
